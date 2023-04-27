@@ -1,4 +1,5 @@
 use crate::{Correctness, Guess, Guesser, DICTIONARY};
+use std::borrow::Cow;
 use std::collections::HashMap;
 pub struct Naive {
     remaining: HashMap<&'static str, usize>,
@@ -6,7 +7,7 @@ pub struct Naive {
 
 impl Naive {
     pub fn new() -> Self {
-        Naive {
+        Self {
             remaining: HashMap::from_iter(DICTIONARY.lines().map(|line| {
                 let (word, count) = line
                     .split_once(' ')
@@ -48,7 +49,7 @@ impl Guesser for Naive {
                 let mut in_pattern_total = 0;
                 for (candidate, count) in &self.remaining {
                     let g = Guess {
-                        word: word.to_string(),
+                        word: Cow::Owned(word.to_string()),
                         mask: pattern,
                     };
                     if g.matches(candidate) {
@@ -58,6 +59,8 @@ impl Guesser for Naive {
                 if in_pattern_total == 0 {
                     continue;
                 }
+
+                //TODO: Apply sigmoid
                 let p_of_this_pattern = in_pattern_total as f64 / remaining_count as f64;
                 sum += p_of_this_pattern * p_of_this_pattern.log2();
             }
